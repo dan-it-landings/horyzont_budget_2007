@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор сценаріїв бюджету 2027 · Горизонт Груп</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--agro:#13294B;--navy:#13294B;--ink:#13294B;--amber:#F2A541;--steel:#3E6A9E;--sky:#7FA7C9;--pos:#2A9D8F;--neg:#D1495B;--plan:#9AA7B8;--grid:#E6EAF0;--bg:#F7F8FA;--card:#FFFFFF;--text:#1B2433;--muted:#5B6B82}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1726;--card:#17223A;--text:#E8EDF5;--muted:#9AA9BF;--grid:#26324A;--ink:#CFE0F5;--agro:#CFE0F5}}
+:root[data-theme="dark"]{--bg:#0F1726;--card:#17223A;--text:#E8EDF5;--muted:#9AA9BF;--grid:#26324A;--ink:#CFE0F5;--agro:#CFE0F5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Manrope,Arial,sans-serif;font-size:14px;line-height:1.45}
+.page{max-width:1040px;margin:0 auto;padding:28px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:3px solid var(--amber)}
+.logo .t1{fill:var(--ink)}.logo .t2{fill:var(--muted)}.logo .ln{fill:var(--ink)}
+.meta{text-align:right;color:var(--muted);font-size:12px}.meta b{color:var(--text)}
+h1{font-size:27px;font-weight:800;color:var(--ink);margin:22px 0 6px;letter-spacing:-.3px}
+.lead{font-size:16px;margin:0 0 22px;max-width:860px}
+.lead strong{color:var(--ink);background:rgba(242,165,65,.16);padding:0 4px;border-radius:3px}
+h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:10px;padding:14px 16px;border-top:3px solid var(--navy)}
+.kpi.accent{border-top-color:var(--amber)}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .value{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;margin:2px 0}
+.kpi .value small{font-size:14px;font-weight:700;color:var(--muted)}
+.kpi .exact{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;margin-bottom:6px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;font-variant-numeric:tabular-nums}
+.badge.pos{color:var(--pos);background:rgba(42,157,143,.12)}
+.badge.neg{color:var(--neg);background:rgba(209,73,91,.12)}
+.badge.neu{color:var(--muted);background:var(--grid)}
+.grid2{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:16px}
+.card{background:var(--card);border-radius:10px;padding:16px;margin-bottom:16px}
+.grid2 .card{margin-bottom:0}
+.chart{position:relative;height:300px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:2px solid var(--navy)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums}
+tr.total td{font-weight:800;border-top:2px solid var(--navy);border-bottom:none}
+tr.sub td{color:var(--muted)}
+td.pos{color:var(--pos);font-weight:700}td.neg{color:var(--neg);font-weight:700}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+/* controls */
+.controls{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px}
+.ctl label{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.ctl .val{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ctl .chg{font-size:11px;color:var(--muted);min-height:16px}
+.ctl .chg.changed{color:var(--amber);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--amber);margin:6px 0 2px}
+.scen{display:flex;gap:8px;flex-wrap:wrap}
+.scen button{font:inherit;font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;border:2px solid var(--grid);background:var(--card);color:var(--text);cursor:pointer}
+.scen button.on{border-color:var(--amber);background:rgba(242,165,65,.14)}
+.scen button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.scen-note{font-size:12px;color:var(--muted);margin-top:8px}
+.check{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:12px;padding:10px 12px;border-radius:8px}
+.check.ok{background:rgba(42,157,143,.10);border-left:4px solid var(--pos)}
+.check.bad{background:rgba(209,73,91,.08);border-left:4px solid var(--neg)}
+.issues{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.issues li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 14px;border-radius:8px;background:rgba(209,73,91,.06);border-left:4px solid var(--neg)}
+.issues li.warn{background:rgba(242,165,65,.10);border-left-color:var(--amber)}
+.issues .n{font-weight:800;color:var(--ink)}
+.issues .sum{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.issues .act{color:var(--muted);font-size:13px;margin-top:2px}
+.tick{color:var(--pos);font-weight:800}.cross{color:var(--neg);font-weight:800}
+footer{margin-top:18px;color:var(--muted);font-size:11px;border-top:1px solid var(--grid);padding-top:10px}
+.scroll{overflow-x:auto}
+@media (max-width:860px){.controls{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.meta{text-align:left}.issues li{grid-template-columns:1fr}.kpi .value{font-size:24px}}
+@media print{@page{size:A4;margin:10mm}body{background:#fff;font-size:12px}.page{padding:0;max-width:none}.kpi,.card{border:1px solid var(--grid)}.chart{height:220px}.grid2{break-inside:avoid}input[type=range],.scen{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" height="44" role="img" aria-label="Горизонт Груп"><path d="M6 34 A18 18 0 0 1 42 34 Z" fill="#F2A541"/><rect class="ln" x="0" y="36" width="48" height="3" rx="1.5"/><rect class="ln" x="8" y="42" width="32" height="2" rx="1" opacity=".45"/><text class="t1" x="58" y="30" font-family="Manrope, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2">ГОРИЗОНТ</text><text class="t2" x="58" y="44" font-family="Manrope, Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="4">ГРУП</text></svg>
+  <div class="meta">Для: <b>Ради директорів, фінвідділу</b><br>Період: <b>бюджет 2027, рік і квартали</b><br>Підготовлено: <b>фінансовий відділ</b></div>
+</header>
+
+<h1>Калькулятор сценаріїв бюджету 2027</h1>
+<p class="lead" id="lead"></p>
+
+<div class="card">
+  <h2>Сценарій і припущення</h2>
+  <div class="scen" role="group" aria-label="Сценарії">
+    <button data-s="base" class="on">Базовий (бюджет)</button>
+    <button data-s="pess">Песимістичний</button>
+    <button data-s="opt">Оптимістичний</button>
+  </div>
+  <div class="scen-note" id="scenNote"></div>
+  <div class="controls" id="controls"></div>
+  <div class="check" id="selfcheck"></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>EBITDA групи: бюджет → вплив компаній → сценарій, тис. грн (вісь не від нуля)</h2>
+    <div class="chart"><canvas id="wf" aria-label="Водоспад EBITDA"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>EBITDA за компаніями, тис. грн</h2>
+    <table id="tCo"></table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Зведення групи за кварталами — сценарій проти бюджету, тис. грн</h2>
+  <div class="scroll"><table id="tQ"></table></div>
+</div>
+
+<div class="card">
+  <h2>Деталізація за компаніями (рік), тис. грн</h2>
+  <div class="scroll"><table id="tDet"></table></div>
+</div>
+
+<div class="card">
+  <h2>Перевірка: калькулятор = Excel-модель</h2>
+  <p style="margin:0 0 10px;color:var(--muted);font-size:13px">Excel-значення отримані перерахунком виправленого файлу «Horyzont_Biudzhet_2027_model» при відповідних припущеннях. Калькулятор рахує ті самі формули, що аркуш «Бюджет_2027» і «Зведення».</p>
+  <div class="scroll"><table id="tVer"></table></div>
+</div>
+
+<div class="card">
+  <h2>Що виправлено в моделі перед побудовою калькулятора</h2>
+  <ul class="issues">
+    <li><span class="n">1</span><div><b>EBITDA групи давала #REF!</b><div class="act">Причина: у «Зведення»!B6:F6 замість EBITDA Девелопменту стояло битe посилання — помилка тягнулась у маржу й прибуток до оподаткування. Дія: замінено на Бюджет_2027!B33:F33.</div></div><span class="sum">+369 200</span></li>
+    <li><span class="n">2</span><div><b>Виручка групи без Девелопменту</b><div class="act">Причина: «Зведення»!B5:F5 підсумовувала лише Агро, Логістик і Рітейл; маржа EBITDA групи була б завищена. Дія: додано Бюджет_2027!B30:F30.</div></div><span class="sum">+1 435 000</span></li>
+    <li class="warn"><span class="n">3</span><div><b>Податок на прибуток у моделі не рахується</b><div class="act">Причина: модель закінчується прибутком до оподаткування; амортизації в ній теж немає, тому PBT = EBITDA − відсотки. Дія: калькулятор показує саме цей показник; податок і амортизацію варто додати в модель окремо.</div></div><span class="sum">процес</span></li>
+  </ul>
+</div>
+
+<footer>
+  Джерела: Horyzont_Biudzhet_2027_model.xlsx — аркуші «Припущення», «Драйвери», «Бюджет_2027», «Зведення» (після виправлення). Одиниці: тис. грн без ПДВ, якщо не вказано інше.
+  Методика: EBITDA = виручка − собівартість (частка від виручки) − пальне (обсяг × ціна дизелю) − імпорт (тис. USD × курс) − операційні витрати; відсотки = кредитний портфель на початок кварталу × ставка / 4; прибуток до оподаткування = EBITDA − відсотки. Індексація тарифів Логістику й зміна цін Рітейлу множать базову виручку; собівартість рухається пропорційно виручці, як у моделі. Відхилення — сценарій мінус бюджет (базові припущення). Синтетичні дані для навчання.
+</footer>
+</div>
+
+<script>
+/* ===== Дані моделі (аркуші «Драйвери» і «Бюджет_2027») ===== */
+const BASE={fx:41.8,diesel:58.5,rate:0.18,logIdx:0,retIdx:0.05};
+const D={
+  agroImpUSD:[180,420,610,520], agroFuel:[210,640,980,820],
+  logFuel:[1150,1180,1210,1260], retImpUSD:[2100,2050,2200,2900],
+  debt:[820000,790000,760000,730000],
+  agroRev:[52000,118000,296000,248000], agroOpex:[21000,26000,31000,29000], agroCogs:0.46,
+  logRev0:[231000,238000,244000,262000], logOpex:[27500,28000,28500,29500], logCogs:0.38,
+  retRev0:[1480000,1530000,1560000,1890000], retOpex:[262000,266000,270000,318000], retCogs:0.62,
+  devRev:[310000,345000,360000,420000], devOpex:[21500,22000,22500,24000], devCogs:0.68
+};
+const CO=[
+  {k:'agro',n:'Горизонт Агро',c:'--agro'},
+  {k:'log',n:'Горизонт Логістик',c:'--steel'},
+  {k:'ret',n:'Горизонт Рітейл',c:'--amber'},
+  {k:'dev',n:'Горизонт Девелопмент',c:'--sky'}
+];
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const Q=[0,1,2,3];
+
+function model(p){
+  const r={};
+  const agro={rev:D.agroRev.slice()}; agro.cogs=agro.rev.map(v=>D.agroCogs*v);
+  agro.fuel=Q.map(i=>D.agroFuel[i]*p.diesel); agro.imp=Q.map(i=>D.agroImpUSD[i]*p.fx); agro.opex=D.agroOpex;
+  agro.e=Q.map(i=>agro.rev[i]-agro.cogs[i]-agro.fuel[i]-agro.imp[i]-agro.opex[i]);
+  const log={rev:Q.map(i=>D.logRev0[i]*(1+p.logIdx))}; log.cogs=log.rev.map(v=>D.logCogs*v);
+  log.fuel=Q.map(i=>D.logFuel[i]*p.diesel); log.imp=[0,0,0,0]; log.opex=D.logOpex;
+  log.e=Q.map(i=>log.rev[i]-log.cogs[i]-log.fuel[i]-log.opex[i]);
+  const ret={rev:Q.map(i=>D.retRev0[i]*(1+p.retIdx))}; ret.cogs=ret.rev.map(v=>D.retCogs*v);
+  ret.fuel=[0,0,0,0]; ret.imp=Q.map(i=>D.retImpUSD[i]*p.fx); ret.opex=D.retOpex;
+  ret.e=Q.map(i=>ret.rev[i]-ret.cogs[i]-ret.imp[i]-ret.opex[i]);
+  const dev={rev:D.devRev.slice()}; dev.cogs=dev.rev.map(v=>D.devCogs*v);
+  dev.fuel=[0,0,0,0]; dev.imp=[0,0,0,0]; dev.opex=D.devOpex;
+  dev.e=Q.map(i=>dev.rev[i]-dev.cogs[i]-dev.opex[i]);
+  r.co={agro,log,ret,dev};
+  for(const c of Object.values(r.co)){for(const f of ['rev','cogs','fuel','imp','opex','e'])c[f+'Y']=sum(c[f]);}
+  r.revQ=Q.map(i=>agro.rev[i]+log.rev[i]+ret.rev[i]+dev.rev[i]);
+  r.eQ=Q.map(i=>agro.e[i]+log.e[i]+ret.e[i]+dev.e[i]);
+  r.intQ=Q.map(i=>D.debt[i]*p.rate/4);
+  r.pbtQ=Q.map(i=>r.eQ[i]-r.intQ[i]);
+  r.rev=sum(r.revQ); r.e=sum(r.eQ); r.int=sum(r.intQ); r.pbt=sum(r.pbtQ);
+  return r;
+}
+
+/* ===== Сценарії ===== */
+const SCEN={
+  base:{name:'Базовий',p:{...BASE},note:'Припущення бюджету 2027 з аркуша «Припущення»: курс 41,8 грн/$, дизель 58,5 грн/л, Логістик без індексації, Рітейл +5%, ставка 18%.'},
+  pess:{name:'Песимістичний',p:{...BASE,fx:46,diesel:+(BASE.diesel*1.15).toFixed(3)},note:'Курс 46,0 грн/$, дизель +15% (67,3 грн/л); решта — як у бюджеті.'},
+  opt:{name:'Оптимістичний',p:{fx:40.5,diesel:+(BASE.diesel*0.95).toFixed(3),rate:0.16,logIdx:0.05,retIdx:0.07},note:'Припущення калькулятора (у запиті не задані — змініть за потреби): курс 40,5 грн/$, дизель −5% (55,6 грн/л), індексація тарифів Логістику +5%, ціни Рітейлу +7%, ставка 16%.'}
+};
+
+/* ===== Повзунки ===== */
+const CTL=[
+  {k:'fx',l:'Курс USD/UAH, грн',min:38,max:50,step:0.1,f:v=>fmt(v,1),chg:v=>v===BASE.fx?'як у бюджеті':signed(v-BASE.fx,1)+' грн до бюджету'},
+  {k:'diesel',l:'Ціна дизелю, грн/л',min:45,max:80,step:0.1,f:v=>fmt(v,1),chg:v=>Math.abs(v-BASE.diesel)<1e-9?'як у бюджеті':signed((v/BASE.diesel-1)*100,1)+'% до бюджету'},
+  {k:'logIdx',l:'Індексація тарифів Логістику',min:-0.10,max:0.20,step:0.005,f:v=>signedPct(v),chg:v=>v===BASE.logIdx?'як у бюджеті':signed((v-BASE.logIdx)*100,1)+' п.п. до бюджету'},
+  {k:'retIdx',l:'Зміна цін Рітейлу',min:-0.10,max:0.20,step:0.005,f:v=>signedPct(v),chg:v=>Math.abs(v-BASE.retIdx)<1e-9?'як у бюджеті':signed((v-BASE.retIdx)*100,1)+' п.п. до бюджету'},
+  {k:'rate',l:'Ставка за кредитами, % річних',min:0.08,max:0.30,step:0.005,f:v=>fmt(v*100,1)+'%',chg:v=>Math.abs(v-BASE.rate)<1e-9?'як у бюджеті':signed((v-BASE.rate)*100,1)+' п.п. до бюджету'}
+];
+let P={...BASE};
+
+/* ===== Форматування ===== */
+function fmt(v,d=0){return (Math.abs(v)<0.0005?0:v).toLocaleString('uk-UA',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function signed(v,d=0){if(Math.abs(v)<0.0005)return '0';return (v>0?'+':'−')+fmt(Math.abs(v),d)}
+function signedPct(v){return (v>0?'+':v<0?'−':'')+fmt(Math.abs(v)*100,1)+'%'}
+function tbl(v,d=0){if(Math.abs(v)<0.0005)return '–';return v<0?'('+fmt(-v,d)+')':fmt(v,d)}
+function dev(v){const c=Math.abs(v)<0.5?'':(v>0?'pos':'neg');return `<td class="${c}">${Math.abs(v)<0.5?'–':signed(v)}</td>`}
+function mln(v){return fmt(v/1000,1)}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ===== Рендер ===== */
+const B=model(BASE);
+function buildControls(){
+  const el=document.getElementById('controls');
+  el.innerHTML=CTL.map(c=>`<div class="ctl"><label for="s_${c.k}">${c.l}</label><div class="val" id="v_${c.k}"></div><input type="range" id="s_${c.k}" min="${c.min}" max="${c.max}" step="${c.step}"><div class="chg" id="c_${c.k}"></div></div>`).join('');
+  CTL.forEach(c=>{document.getElementById('s_'+c.k).addEventListener('input',e=>{P[c.k]=+(+e.target.value).toFixed(4);markScen(null);render();});});
+}
+function syncControls(){
+  CTL.forEach(c=>{document.getElementById('s_'+c.k).value=P[c.k];document.getElementById('v_'+c.k).textContent=c.f(P[c.k]);
+    const ch=document.getElementById('c_'+c.k);ch.textContent=c.chg(P[c.k]);ch.className='chg'+(ch.textContent==='як у бюджеті'?'':' changed');});
+}
+function markScen(s){
+  document.querySelectorAll('.scen button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  document.getElementById('scenNote').textContent=s?SCEN[s].note:'Власний сценарій: припущення змінено повзунками.';
+}
+document.querySelectorAll('.scen button').forEach(b=>b.addEventListener('click',()=>{P={...SCEN[b.dataset.s].p};markScen(b.dataset.s);render();}));
+
+let chart;
+function render(){
+  syncControls();
+  const S=model(P);
+  const dE=S.e-B.e, dP=S.pbt-B.pbt, margin=S.e/S.rev, bMargin=B.e/B.rev;
+  // lead
+  const worst=CO.map(c=>({n:c.n,d:S.co[c.k].eY-B.co[c.k].eY})).sort((a,b)=>a.d-b.d)[0];
+  document.getElementById('lead').innerHTML = Math.abs(dE)<0.5 && Math.abs(dP)<0.5
+    ? `За бюджетних припущень EBITDA групи — <strong>${fmt(S.e)} тис. грн</strong> при маржі ${fmt(margin*100,1)}%, прибуток до оподаткування — <strong>${fmt(S.pbt)} тис. грн</strong>. Рухайте повзунки або оберіть сценарій, щоб побачити відхилення.`
+    : `У цьому сценарії EBITDA групи — <strong>${fmt(S.e)} тис. грн</strong> (${signed(dE)} до бюджету, ${signed(dE/B.e*100,1)}%), прибуток до оподаткування — <strong>${fmt(S.pbt)} тис. грн</strong> (${signed(dP)}). ${Math.abs(worst.d)>=0.5&&worst.d<0?`Найбільше втрачає ${worst.n}: ${signed(worst.d)} тис. грн.`:''}`;
+  // kpis
+  const badge=(v,unit='тис. грн')=>Math.abs(v)<0.5?`<span class="badge neu">= бюджет</span>`:`<span class="badge ${v>0?'pos':'neg'}">${signed(v)} ${unit} до бюджету</span>`;
+  document.getElementById('kpis').innerHTML=`
+   <div class="kpi accent"><div class="label">EBITDA групи</div><div class="value">${mln(S.e)} <small>млн грн</small></div><div class="exact">${fmt(S.e)} тис. грн</div>${badge(dE)}</div>
+   <div class="kpi"><div class="label">Відхилення EBITDA від бюджету</div><div class="value" style="color:${Math.abs(dE)<0.5?'':(dE>0?'var(--pos)':'var(--neg)')}">${signed(dE)} <small>тис. грн</small></div><div class="exact">бюджет ${fmt(B.e)} тис. грн</div><span class="badge neu">${signed(dE/B.e*100,1)}%</span></div>
+   <div class="kpi"><div class="label">Прибуток до оподаткування</div><div class="value">${mln(S.pbt)} <small>млн грн</small></div><div class="exact">${fmt(S.pbt)} тис. грн · відсотки ${fmt(S.int)}</div>${badge(dP)}</div>
+   <div class="kpi"><div class="label">Маржа EBITDA групи</div><div class="value">${fmt(margin*100,1)}<small>%</small></div><div class="exact">виручка ${fmt(S.rev)} тис. грн</div><span class="badge ${Math.abs(margin-bMargin)<0.00005?'neu':(margin>bMargin?'pos':'neg')}">${Math.abs(margin-bMargin)<0.00005?'= бюджет':signed((margin-bMargin)*100,1)+' п.п.'}</span></div>`;
+  // company table
+  let h=`<tr><th>Компанія</th><th>Бюджет</th><th>Сценарій</th><th>Відхил.</th></tr>`;
+  CO.forEach(c=>{const s=S.co[c.k].eY,b=B.co[c.k].eY;h+=`<tr><td><span class="dot" style="background:var(${c.c})"></span>${c.n.replace('Горизонт ','')}</td><td>${tbl(b)}</td><td>${tbl(s)}</td>${dev(s-b)}</tr>`;});
+  h+=`<tr class="total"><td>Група</td><td>${tbl(B.e)}</td><td>${tbl(S.e)}</td>${dev(dE)}</tr>`;
+  h+=`<tr class="sub"><td>Відсотки за кредитами</td><td>(${fmt(B.int)})</td><td>(${fmt(S.int)})</td>${dev(-(S.int-B.int))}</tr>`;
+  h+=`<tr class="total"><td>Прибуток до оподатк.</td><td>${tbl(B.pbt)}</td><td>${tbl(S.pbt)}</td>${dev(dP)}</tr>`;
+  document.getElementById('tCo').innerHTML=h;
+  // quarterly
+  const qn=['Q1','Q2','Q3','Q4'];
+  let q=`<tr><th>Показник</th>${qn.map(x=>`<th>${x}</th>`).join('')}<th>Рік</th></tr>`;
+  const row=(n,arr,tot,cls='')=>`<tr class="${cls}"><td>${n}</td>${arr.map(v=>`<td>${tbl(v)}</td>`).join('')}<td>${tbl(tot)}</td></tr>`;
+  const drow=(n,arr,tot)=>`<tr class="sub"><td>${n}</td>${arr.map(v=>dev(v)).join('')}${dev(tot)}</tr>`;
+  q+=row('Виручка групи',S.revQ,S.rev);
+  q+=row('EBITDA групи',S.eQ,S.e,'');
+  q+=drow('  відхилення від бюджету',Q.map(i=>S.eQ[i]-B.eQ[i]),dE);
+  q+=`<tr><td>Маржа EBITDA, %</td>${Q.map(i=>`<td>${fmt(S.eQ[i]/S.revQ[i]*100,1)}%</td>`).join('')}<td>${fmt(margin*100,1)}%</td></tr>`;
+  q+=row('Відсотки за кредитами',S.intQ.map(v=>-v),-S.int);
+  q+=row('Прибуток до оподаткування',S.pbtQ,S.pbt,'total');
+  q+=drow('  відхилення від бюджету',Q.map(i=>S.pbtQ[i]-B.pbtQ[i]),dP);
+  document.getElementById('tQ').innerHTML=q;
+  // detail
+  let d=`<tr><th>Компанія</th><th>Виручка</th><th>Собівартість</th><th>Пальне</th><th>Імпорт</th><th>Опер. витрати</th><th>EBITDA</th><th>Маржа</th><th>Відхил. EBITDA</th></tr>`;
+  CO.forEach(c=>{const x=S.co[c.k];d+=`<tr><td><span class="dot" style="background:var(${c.c})"></span>${c.n}</td><td>${tbl(x.revY)}</td><td>${tbl(-x.cogsY)}</td><td>${tbl(-x.fuelY)}</td><td>${tbl(-x.impY)}</td><td>${tbl(-x.opexY)}</td><td><b>${tbl(x.eY)}</b></td><td>${fmt(x.eY/x.revY*100,1)}%</td>${dev(x.eY-B.co[c.k].eY)}</tr>`;});
+  const tot=f=>sum(CO.map(c=>S.co[c.k][f]));
+  d+=`<tr class="total"><td>Група</td><td>${tbl(tot('revY'))}</td><td>${tbl(-tot('cogsY'))}</td><td>${tbl(-tot('fuelY'))}</td><td>${tbl(-tot('impY'))}</td><td>${tbl(-tot('opexY'))}</td><td>${tbl(S.e)}</td><td>${fmt(margin*100,1)}%</td>${dev(dE)}</tr>`;
+  document.getElementById('tDet').innerHTML=d;
+  drawChart(S);
+}
+
+const valLabels={id:'vl',afterDatasetsDraw(ch){const {ctx}=ch;ctx.save();ctx.font='700 11px Manrope, Arial';ctx.textAlign='center';
+  ch.data.datasets[0].data.forEach((r,i)=>{const m=ch.getDatasetMeta(0).data[i];const v=ch.data.datasets[0].raw[i];const top=Math.min(m.y,m.base);
+    ctx.fillStyle=v<0?css('--neg'):css('--text');ctx.fillText((i===0||i===ch.data.labels.length-1)?fmt(v):signed(v),m.x,top-5);});ctx.restore();}};
+
+function drawChart(S){
+  const labels=[['Бюджет'],['Агро'],['Логістик'],['Рітейл'],['Девелоп-','мент'],['Сценарій']];
+  const deltas=CO.map(c=>S.co[c.k].eY-B.co[c.k].eY);
+  let run=B.e;const data=[[0,B.e]];const raw=[B.e];const colors=[css('--plan')];
+  deltas.forEach((v,i)=>{data.push([run,run+v]);raw.push(v);run+=v;colors.push(Math.abs(v)<0.5?css('--grid'):(v<0?css('--neg'):css(CO[i].c)));});
+  data.push([0,S.e]);raw.push(S.e);colors.push(css('--ink'));
+  // вісь обрізана, щоб було видно внесок кожної компанії
+  const lv=[B.e,S.e];let rr=B.e;deltas.forEach(v=>{rr+=v;lv.push(rr);});
+  const lo=Math.min(...lv),hi=Math.max(...lv),pad=Math.max((hi-lo)*0.8,60000);
+  const yMin=Math.max(0,Math.floor((lo-pad)/50000)*50000),maxV=hi+pad*0.3;
+  const cfg={type:'bar',data:{labels,datasets:[{data,raw,backgroundColor:colors,borderColor:colors.map((c,i)=>i===colors.length-1?css('--amber'):c),borderWidth:colors.map((c,i)=>i===colors.length-1?3:0),borderRadius:3,borderSkipped:false}]},
+    options:{maintainAspectRatio:false,animation:{duration:200},layout:{padding:{top:20}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.dataset.raw[c.dataIndex];return (c.dataIndex===0||c.dataIndex===5?fmt(v):signed(v))+' тис. грн'}}}},
+      scales:{x:{grid:{display:false},ticks:{maxRotation:0}},y:{min:yMin,suggestedMax:maxV,grid:{color:css('--grid')},ticks:{callback:v=>fmt(v/1000,1)},title:{display:true,text:'млн грн'}}}},plugins:[valLabels]};
+  Chart.defaults.font.family='Manrope, Arial, sans-serif';Chart.defaults.color=css('--muted');
+  if(chart){chart.data=cfg.data;chart.options=cfg.options;chart.update();}else chart=new Chart(document.getElementById('wf'),cfg);
+}
+
+/* ===== Перевірка проти Excel ===== */
+// Значення з перерахованої Excel-моделі (LibreOffice), тис. грн
+const EXCEL=[
+  {n:'Базовий (41,8; 58,5; 0%; +5%; 18%)',p:{...BASE},e:1705511,pbt:1566011,co:[51221,210200,1074890,369200]},
+  {n:'Лише курс 44,0',p:{...BASE,fx:44},e:1681355,pbt:1541855,co:[47415,210200,1054540,369200]},
+  {n:'Песимістичний (46; +15% дизель)',p:SCEN.pess.p,e:1594021.25,pbt:1454521.25,co:[20701.25,168080,1036040,369200]},
+  {n:'Оптимістичний',p:SCEN.opt.p,e:1820897.25,pbt:1696897.25,co:[61221.25,254465,1136011,369200]}
+];
+function renderVerification(){
+  let h=`<tr><th>Сценарій</th><th>EBITDA · Excel</th><th>EBITDA · калькулятор</th><th>Різниця</th><th>PBT · Excel</th><th>PBT · калькулятор</th><th>Різниця</th><th>Компанії</th></tr>`;
+  let allOk=true;
+  EXCEL.forEach(x=>{if(x.e===null)return;const m=model(x.p);const de=m.e-x.e,dp=m.pbt-x.pbt;
+    const coOk=x.co.every((v,i)=>Math.abs(m.co[CO[i].k].eY-v)<0.5);const ok=Math.abs(de)<0.5&&Math.abs(dp)<0.5&&coOk;allOk=allOk&&ok;
+    h+=`<tr><td>${x.n}</td><td>${fmt(x.e,x.e%1?1:0)}</td><td>${fmt(m.e,x.e%1?1:0)}</td><td class="${Math.abs(de)<0.5?'':'neg'}">${Math.abs(de)<0.5?'0':fmt(de,1)}</td><td>${fmt(x.pbt,x.pbt%1?1:0)}</td><td>${fmt(m.pbt,x.pbt%1?1:0)}</td><td class="${Math.abs(dp)<0.5?'':'neg'}">${Math.abs(dp)<0.5?'0':fmt(dp,1)}</td><td>${coOk?'<span class="tick">✓ 4 з 4</span>':'<span class="cross">✗</span>'}</td></tr>`;});
+  const b=model(BASE),f=model({...BASE,fx:44});
+  h+=`<tr class="total"><td>Вплив курсу 44,0 на EBITDA</td><td>−24 156</td><td>${signed(f.e-b.e)}</td><td>${Math.abs((f.e-b.e)+24156)<0.5?'0':fmt(f.e-b.e+24156)}</td><td colspan="4" style="text-align:left;font-weight:600">= (44,0 − 41,8) × (1 730 тис. $ Агро + 9 250 тис. $ Рітейл)</td></tr>`;
+  document.getElementById('tVer').innerHTML=h;
+  const el=document.getElementById('selfcheck');
+  el.className='check '+(allOk?'ok':'bad');
+  el.innerHTML=allOk?`<span class="tick">✓</span><span>Звірка з Excel пройдена: базова EBITDA групи <b>${fmt(b.e)}</b>, при курсі 44 — <b>${fmt(f.e)}</b> (${signed(f.e-b.e)}). Деталі — у блоці «Перевірка».</span>`
+    :`<span class="cross">✗</span><span>Розбіжність з Excel-моделлю — див. блок «Перевірка».</span>`;
+}
+
+buildControls();markScen('base');render();renderVerification();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{chart&&chart.destroy();chart=null;render();});
+</script>
+</body>
+</html>
