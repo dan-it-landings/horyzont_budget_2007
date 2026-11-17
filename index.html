@@ -66,6 +66,25 @@ input[type=range]{width:100%;accent-color:var(--amber);margin:6px 0 2px}
 .issues .sum{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
 .issues .act{color:var(--muted);font-size:13px;margin-top:2px}
 .tick{color:var(--pos);font-weight:800}.cross{color:var(--neg);font-weight:800}
+.gate{max-width:420px;margin:48px auto 0;background:var(--card);border-radius:10px;padding:26px 24px;border-top:3px solid var(--amber)}
+.gate h1{margin:0 0 6px;font-size:23px}
+.gate p{color:var(--muted);margin:0 0 18px}
+.gate label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.gate input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:8px;border:2px solid var(--grid);background:var(--bg);color:var(--text)}
+.gate input:focus{outline:none;border-color:var(--amber)}
+.gate input.code{font-size:26px;letter-spacing:10px;text-align:center;font-weight:800}
+.btn{font:inherit;font-weight:800;font-size:14px;padding:11px 16px;border-radius:8px;border:0;background:var(--navy);color:#fff;cursor:pointer;width:100%;margin-top:14px}
+:root[data-theme="dark"] .btn{background:var(--amber);color:#13294B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{background:var(--amber);color:#13294B}}
+.btn[disabled]{opacity:.6;cursor:wait}
+.lnk{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;margin-top:12px}
+.msg{font-size:13px;margin-top:12px;min-height:18px}
+.msg.err{color:var(--neg);font-weight:700}.msg.ok{color:var(--pos);font-weight:700}
+.gate .small{font-size:12px;color:var(--muted);margin-top:16px;border-top:1px solid var(--grid);padding-top:12px}
+.userbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;font-size:12px;color:var(--muted);margin-top:6px}
+.userbar button{font:inherit;font-size:12px;font-weight:700;background:none;border:1px solid var(--grid);color:var(--text);border-radius:6px;padding:3px 10px;cursor:pointer}
+.loading{text-align:center;color:var(--muted);padding:60px 0}
+[hidden]{display:none!important}
 footer{margin-top:18px;color:var(--muted);font-size:11px;border-top:1px solid var(--grid);padding-top:10px}
 .scroll{overflow-x:auto}
 @media (max-width:860px){.controls{grid-template-columns:repeat(2,1fr)}}
@@ -77,8 +96,37 @@ footer{margin-top:18px;color:var(--muted);font-size:11px;border-top:1px solid va
 <div class="page">
 <header>
   <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" height="44" role="img" aria-label="Горизонт Груп"><path d="M6 34 A18 18 0 0 1 42 34 Z" fill="#F2A541"/><rect class="ln" x="0" y="36" width="48" height="3" rx="1.5"/><rect class="ln" x="8" y="42" width="32" height="2" rx="1" opacity=".45"/><text class="t1" x="58" y="30" font-family="Manrope, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2">ГОРИЗОНТ</text><text class="t2" x="58" y="44" font-family="Manrope, Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="4">ГРУП</text></svg>
-  <div class="meta">Для: <b>Ради директорів, фінвідділу</b><br>Період: <b>бюджет 2027, рік і квартали</b><br>Підготовлено: <b>фінансовий відділ</b></div>
+  <div class="meta">Для: <b>Ради директорів, фінвідділу</b><br>Період: <b>бюджет 2027, рік і квартали</b><br>Підготовлено: <b>фінансовий відділ</b>
+    <div class="userbar" id="userbar" hidden><span id="whoami"></span><button id="logout" type="button">Вийти</button></div></div>
 </header>
+
+<section class="gate" id="gate" hidden aria-live="polite">
+  <div id="stepEmail">
+    <h1>Вхід до звіту</h1>
+    <p>Калькулятор сценаріїв бюджету 2027 доступний співробітникам зі списку доступу. Вкажіть робочу пошту — ми надішлемо одноразовий код.</p>
+    <form id="fEmail" novalidate>
+      <label for="email">Робоча пошта</label>
+      <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@company.com" required>
+      <button class="btn" id="bEmail" type="submit">Отримати код</button>
+    </form>
+  </div>
+  <div id="stepCode" hidden>
+    <h1>Введіть код</h1>
+    <p id="codeHint"></p>
+    <form id="fCode" novalidate>
+      <label for="code">Код із листа</label>
+      <input id="code" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+      <button class="btn" id="bCode" type="submit">Увійти</button>
+    </form>
+    <button class="lnk" id="resend" type="button">Надіслати код ще раз</button> · <button class="lnk" id="back" type="button">Змінити пошту</button>
+  </div>
+  <div class="msg" id="msg" role="status"></div>
+  <div class="small">Код дійсний 10 хвилин, сесія — 8 годин. Немає доступу? Зверніться до фінансового відділу.</div>
+</section>
+
+<div class="loading" id="loading">Завантаження…</div>
+
+<main id="report" hidden>
 
 <h1>Калькулятор сценаріїв бюджету 2027</h1>
 <p class="lead" id="lead"></p>
@@ -126,31 +174,20 @@ footer{margin-top:18px;color:var(--muted);font-size:11px;border-top:1px solid va
 
 <div class="card">
   <h2>Що виправлено в моделі перед побудовою калькулятора</h2>
-  <ul class="issues">
-    <li><span class="n">1</span><div><b>EBITDA групи давала #REF!</b><div class="act">Причина: у «Зведення»!B6:F6 замість EBITDA Девелопменту стояло битe посилання — помилка тягнулась у маржу й прибуток до оподаткування. Дія: замінено на Бюджет_2027!B33:F33.</div></div><span class="sum">+369 200</span></li>
-    <li><span class="n">2</span><div><b>Виручка групи без Девелопменту</b><div class="act">Причина: «Зведення»!B5:F5 підсумовувала лише Агро, Логістик і Рітейл; маржа EBITDA групи була б завищена. Дія: додано Бюджет_2027!B30:F30.</div></div><span class="sum">+1 435 000</span></li>
-    <li class="warn"><span class="n">3</span><div><b>Податок на прибуток у моделі не рахується</b><div class="act">Причина: модель закінчується прибутком до оподаткування; амортизації в ній теж немає, тому PBT = EBITDA − відсотки. Дія: калькулятор показує саме цей показник; податок і амортизацію варто додати в модель окремо.</div></div><span class="sum">процес</span></li>
-  </ul>
+  <ul class="issues" id="fixes"></ul>
 </div>
 
 <footer>
   Джерела: Horyzont_Biudzhet_2027_model.xlsx — аркуші «Припущення», «Драйвери», «Бюджет_2027», «Зведення» (після виправлення). Одиниці: тис. грн без ПДВ, якщо не вказано інше.
   Методика: EBITDA = виручка − собівартість (частка від виручки) − пальне (обсяг × ціна дизелю) − імпорт (тис. USD × курс) − операційні витрати; відсотки = кредитний портфель на початок кварталу × ставка / 4; прибуток до оподаткування = EBITDA − відсотки. Індексація тарифів Логістику й зміна цін Рітейлу множать базову виручку; собівартість рухається пропорційно виручці, як у моделі. Відхилення — сценарій мінус бюджет (базові припущення). Синтетичні дані для навчання.
 </footer>
+</main>
 </div>
 
 <script>
-/* ===== Дані моделі (аркуші «Драйвери» і «Бюджет_2027») ===== */
-const BASE={fx:41.8,diesel:58.5,rate:0.18,logIdx:0,retIdx:0.05};
-const D={
-  agroImpUSD:[180,420,610,520], agroFuel:[210,640,980,820],
-  logFuel:[1150,1180,1210,1260], retImpUSD:[2100,2050,2200,2900],
-  debt:[820000,790000,760000,730000],
-  agroRev:[52000,118000,296000,248000], agroOpex:[21000,26000,31000,29000], agroCogs:0.46,
-  logRev0:[231000,238000,244000,262000], logOpex:[27500,28000,28500,29500], logCogs:0.38,
-  retRev0:[1480000,1530000,1560000,1890000], retOpex:[262000,266000,270000,318000], retCogs:0.62,
-  devRev:[310000,345000,360000,420000], devOpex:[21500,22000,22500,24000], devCogs:0.68
-};
+/* ===== Дані моделі приходять з n8n лише після входу ===== */
+const API='https://danit-n8n.duckdns.org/webhook/horyzont-budget-2027-auth';
+let BASE,D,SCEN,EXCEL,FX,FIXES,B,P;
 const CO=[
   {k:'agro',n:'Горизонт Агро',c:'--agro'},
   {k:'log',n:'Горизонт Логістик',c:'--steel'},
@@ -184,13 +221,6 @@ function model(p){
   return r;
 }
 
-/* ===== Сценарії ===== */
-const SCEN={
-  base:{name:'Базовий',p:{...BASE},note:'Припущення бюджету 2027 з аркуша «Припущення»: курс 41,8 грн/$, дизель 58,5 грн/л, Логістик без індексації, Рітейл +5%, ставка 18%.'},
-  pess:{name:'Песимістичний',p:{...BASE,fx:46,diesel:+(BASE.diesel*1.15).toFixed(3)},note:'Курс 46,0 грн/$, дизель +15% (67,3 грн/л); решта — як у бюджеті.'},
-  opt:{name:'Оптимістичний',p:{fx:40.5,diesel:+(BASE.diesel*0.95).toFixed(3),rate:0.16,logIdx:0.05,retIdx:0.07},note:'Припущення калькулятора (у запиті не задані — змініть за потреби): курс 40,5 грн/$, дизель −5% (55,6 грн/л), індексація тарифів Логістику +5%, ціни Рітейлу +7%, ставка 16%.'}
-};
-
 /* ===== Повзунки ===== */
 const CTL=[
   {k:'fx',l:'Курс USD/UAH, грн',min:38,max:50,step:0.1,f:v=>fmt(v,1),chg:v=>v===BASE.fx?'як у бюджеті':signed(v-BASE.fx,1)+' грн до бюджету'},
@@ -199,7 +229,6 @@ const CTL=[
   {k:'retIdx',l:'Зміна цін Рітейлу',min:-0.10,max:0.20,step:0.005,f:v=>signedPct(v),chg:v=>Math.abs(v-BASE.retIdx)<1e-9?'як у бюджеті':signed((v-BASE.retIdx)*100,1)+' п.п. до бюджету'},
   {k:'rate',l:'Ставка за кредитами, % річних',min:0.08,max:0.30,step:0.005,f:v=>fmt(v*100,1)+'%',chg:v=>Math.abs(v-BASE.rate)<1e-9?'як у бюджеті':signed((v-BASE.rate)*100,1)+' п.п. до бюджету'}
 ];
-let P={...BASE};
 
 /* ===== Форматування ===== */
 function fmt(v,d=0){return (Math.abs(v)<0.0005?0:v).toLocaleString('uk-UA',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -211,7 +240,6 @@ function mln(v){return fmt(v/1000,1)}
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ===== Рендер ===== */
-const B=model(BASE);
 function buildControls(){
   const el=document.getElementById('controls');
   el.innerHTML=CTL.map(c=>`<div class="ctl"><label for="s_${c.k}">${c.l}</label><div class="val" id="v_${c.k}"></div><input type="range" id="s_${c.k}" min="${c.min}" max="${c.max}" step="${c.step}"><div class="chg" id="c_${c.k}"></div></div>`).join('');
@@ -295,30 +323,82 @@ function drawChart(S){
 }
 
 /* ===== Перевірка проти Excel ===== */
-// Значення з перерахованої Excel-моделі (LibreOffice), тис. грн
-const EXCEL=[
-  {n:'Базовий (41,8; 58,5; 0%; +5%; 18%)',p:{...BASE},e:1705511,pbt:1566011,co:[51221,210200,1074890,369200]},
-  {n:'Лише курс 44,0',p:{...BASE,fx:44},e:1681355,pbt:1541855,co:[47415,210200,1054540,369200]},
-  {n:'Песимістичний (46; +15% дизель)',p:SCEN.pess.p,e:1594021.25,pbt:1454521.25,co:[20701.25,168080,1036040,369200]},
-  {n:'Оптимістичний',p:SCEN.opt.p,e:1820897.25,pbt:1696897.25,co:[61221.25,254465,1136011,369200]}
-];
 function renderVerification(){
   let h=`<tr><th>Сценарій</th><th>EBITDA · Excel</th><th>EBITDA · калькулятор</th><th>Різниця</th><th>PBT · Excel</th><th>PBT · калькулятор</th><th>Різниця</th><th>Компанії</th></tr>`;
   let allOk=true;
-  EXCEL.forEach(x=>{if(x.e===null)return;const m=model(x.p);const de=m.e-x.e,dp=m.pbt-x.pbt;
+  EXCEL.forEach(x=>{const m=model(x.p);const de=m.e-x.e,dp=m.pbt-x.pbt;
     const coOk=x.co.every((v,i)=>Math.abs(m.co[CO[i].k].eY-v)<0.5);const ok=Math.abs(de)<0.5&&Math.abs(dp)<0.5&&coOk;allOk=allOk&&ok;
     h+=`<tr><td>${x.n}</td><td>${fmt(x.e,x.e%1?1:0)}</td><td>${fmt(m.e,x.e%1?1:0)}</td><td class="${Math.abs(de)<0.5?'':'neg'}">${Math.abs(de)<0.5?'0':fmt(de,1)}</td><td>${fmt(x.pbt,x.pbt%1?1:0)}</td><td>${fmt(m.pbt,x.pbt%1?1:0)}</td><td class="${Math.abs(dp)<0.5?'':'neg'}">${Math.abs(dp)<0.5?'0':fmt(dp,1)}</td><td>${coOk?'<span class="tick">✓ 4 з 4</span>':'<span class="cross">✗</span>'}</td></tr>`;});
-  const b=model(BASE),f=model({...BASE,fx:44});
-  h+=`<tr class="total"><td>Вплив курсу 44,0 на EBITDA</td><td>−24 156</td><td>${signed(f.e-b.e)}</td><td>${Math.abs((f.e-b.e)+24156)<0.5?'0':fmt(f.e-b.e+24156)}</td><td colspan="4" style="text-align:left;font-weight:600">= (44,0 − 41,8) × (1 730 тис. $ Агро + 9 250 тис. $ Рітейл)</td></tr>`;
+  const b=model(BASE),f=model({...BASE,fx:FX.fx});const fd=f.e-b.e;
+  h+=`<tr class="total"><td>Вплив курсу ${fmt(FX.fx,1)} на EBITDA</td><td>${signed(FX.delta)}</td><td>${signed(fd)}</td><td>${Math.abs(fd-FX.delta)<0.5?'0':fmt(fd-FX.delta)}</td><td colspan="4" style="text-align:left;font-weight:600">= (${fmt(FX.fx,1)} − ${fmt(BASE.fx,1)}) × (${fmt(FX.usd[0])} тис. $ Агро + ${fmt(FX.usd[1])} тис. $ Рітейл)</td></tr>`;
   document.getElementById('tVer').innerHTML=h;
   const el=document.getElementById('selfcheck');
   el.className='check '+(allOk?'ok':'bad');
-  el.innerHTML=allOk?`<span class="tick">✓</span><span>Звірка з Excel пройдена: базова EBITDA групи <b>${fmt(b.e)}</b>, при курсі 44 — <b>${fmt(f.e)}</b> (${signed(f.e-b.e)}). Деталі — у блоці «Перевірка».</span>`
+  el.innerHTML=allOk?`<span class="tick">✓</span><span>Звірка з Excel пройдена: базова EBITDA групи <b>${fmt(b.e)}</b>, при курсі ${fmt(FX.fx,1)} — <b>${fmt(f.e)}</b> (${signed(f.e-b.e)}). Деталі — у блоці «Перевірка».</span>`
     :`<span class="cross">✗</span><span>Розбіжність з Excel-моделлю — див. блок «Перевірка».</span>`;
 }
 
-buildControls();markScen('base');render();renderVerification();
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{chart&&chart.destroy();chart=null;render();});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!B)return;chart&&chart.destroy();chart=null;render();});
+
+function renderFixes(){
+  document.getElementById('fixes').innerHTML=FIXES.map((x,i)=>`<li class="${x.warn?'warn':''}"><span class="n">${i+1}</span><div><b>${esc(x.t)}</b><div class="act">${esc(x.a)}</div></div><span class="sum">${esc(x.sum)}</span></li>`).join('');
+}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let started=false;
+function initReport(m){
+  BASE=m.base;D=m.drivers;FX=m.fxCheck;FIXES=m.fixes;
+  SCEN={};for(const k of Object.keys(m.scenarios))SCEN[k]={...m.scenarios[k],p:{...m.scenarios[k].p}};
+  const pmap={base:BASE,fx44:{...BASE,fx:FX.fx},pess:SCEN.pess.p,opt:SCEN.opt.p};
+  EXCEL=m.excelCheck.map(x=>({...x,p:pmap[x.s]||BASE}));
+  B=model(BASE);P={...BASE};
+  if(!started){buildControls();started=true;}
+  markScen('base');render();renderVerification();renderFixes();
+}
+
+/* ===== Вхід через n8n ===== */
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const $=id=>document.getElementById(id);
+let curEmail='';
+async function api(action,data){
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok||!j.ok){const e=new Error(j.message||('Помилка сервера ('+r.status+').'));e.status=r.status;throw e;}
+  return j;
+}
+function msg(t,kind){const m=$('msg');m.textContent=t||'';m.className='msg'+(kind?' '+kind:'');}
+function busy(b,on,label){b.disabled=on;if(on){b.dataset.l=b.textContent;b.textContent=label||'Зачекайте…';}else if(b.dataset.l)b.textContent=b.dataset.l;}
+function show(view){
+  $('loading').hidden=view!=='loading';$('gate').hidden=view!=='gate';$('report').hidden=view!=='report';$('userbar').hidden=view!=='report';
+}
+function showEmail(){show('gate');$('stepEmail').hidden=false;$('stepCode').hidden=true;$('email').value=curEmail||store.get('hz_email')||'';$('email').focus();}
+function showCode(){show('gate');$('stepEmail').hidden=true;$('stepCode').hidden=false;$('codeHint').innerHTML='Якщо пошта <b>'+esc(curEmail)+'</b> має доступ, на неї надіслано 6-значний код. Перевірте також «Спам».';$('code').value='';$('code').focus();}
+async function requestCode(btn){
+  busy(btn,true,'Надсилаємо…');msg('');
+  try{const r=await api('request_code',{email:curEmail});store.set('hz_email',curEmail);showCode();}
+  catch(e){msg(e.message,'err');}finally{busy(btn,false);}
+}
+$('fEmail').addEventListener('submit',e=>{e.preventDefault();const v=$('email').value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){msg('Перевірте адресу пошти.','err');return;}curEmail=v;requestCode($('bEmail'));});
+$('code').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);if(e.target.value.length===6)$('fCode').requestSubmit();});
+$('fCode').addEventListener('submit',async e=>{e.preventDefault();const code=$('code').value.trim();
+  if(code.length!==6){msg('Введіть 6 цифр із листа.','err');return;}
+  const b=$('bCode');busy(b,true,'Перевіряємо…');msg('');
+  try{const r=await api('verify_code',{email:curEmail,code});store.set('hz_token',r.token);await loadReport();}
+  catch(err){msg(err.message,'err');$('code').select();}finally{busy(b,false);}});
+$('resend').addEventListener('click',e=>requestCode(e.target));
+$('back').addEventListener('click',()=>{msg('');showEmail();});
+$('logout').addEventListener('click',async()=>{const t=store.get('hz_token');store.del('hz_token');
+  try{if(t)await api('logout',{token:t});}catch(e){}
+  location.reload();});
+async function loadReport(){
+  const t=store.get('hz_token');if(!t){showEmail();return;}
+  show('loading');
+  try{const r=await api('get_report',{token:t});
+    $('whoami').textContent=(r.name?r.name+' · ':'')+r.email;
+    show('report');initReport(r.model);}
+  catch(e){store.del('hz_token');showEmail();if(e.status!==401)msg(e.message,'err');else if(store.get('hz_email'))msg('Сесія завершилась. Увійдіть знову.','err');}
+}
+loadReport();
 </script>
 </body>
 </html>
